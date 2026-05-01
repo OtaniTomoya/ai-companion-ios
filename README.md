@@ -1,40 +1,34 @@
 # AI Companion iOS
 
-SwiftUI iOS client for a realtime AI companion. The app shows a
-MotionPNGTuber-style avatar, connects to a WebSocket AI backend, supports
-voice/text conversation, can attach camera context in vision mode, and can help
-create local journal entries from conversation context.
+リアルタイムAIコンパニオン用のSwiftUI iOSクライアントです。
+MotionPNGTuber形式のアバターを表示し、WebSocket経由でAIバックエンドに接続します。音声/テキスト会話、vision modeでのカメラ文脈送信、会話文脈からの日記作成を扱います。
 
-## Repository Scope
+## リポジトリ範囲
 
-This repository contains the iOS app only.
+このリポジトリにはiOSアプリだけを置いています。
 
-The companion backend is managed separately:
+対応するバックエンドは別リポジトリで管理しています。
 
 ```text
 https://github.com/OtaniTomoya/ai-companion-backend
 ```
 
-The iOS app can connect to any compatible backend endpoint using `wss://.../ws`
-or, in Debug builds, a local `ws://127.0.0.1:8000/ws` endpoint.
+iOSアプリは互換性のある任意のバックエンドに `wss://.../ws` で接続できます。Debugビルドでは、ローカル開発用に `ws://127.0.0.1:8000/ws` も利用できます。
 
-## Features
+## 主な機能
 
-- MotionPNGTuber avatar rendered through a bundled WebView player.
-- Lip-sync driven by local microphone level or received speech audio level.
-- WebSocket connection status, text input, microphone input, remote audio
-  playback, mute, and conversation transcript.
-- Vision mode that sends recent camera frames as conversation context.
-- Journal mode that collects conversation, selected photos, location samples,
-  and optional calendar context into a local daily journal.
-- Settings for WebSocket URL, API key, barge-in, calendar context, and lip-sync
-  sensitivity.
+- バンドルしたWebViewプレイヤーによるMotionPNGTuberアバター表示
+- ローカルマイク音量、または受信した音声レベルに連動するリップシンク
+- WebSocket接続状態、テキスト入力、マイク入力、リモート音声再生、ミュート、会話履歴表示
+- 直近のカメラフレームを会話文脈として送るvision mode
+- 会話、選択写真、位置サンプル、任意の予定表文脈をローカルの日記にまとめるjournal mode
+- WebSocket URL、APIキー、割り込み発話、予定表文脈、リップシンク感度の設定
 
-## Requirements
+## 必要環境
 
-- Xcode 17 or later
-- iOS 17 or later simulator/device
-- A compatible backend endpoint for live AI responses
+- Xcode 17以降
+- iOS 17以降のシミュレータまたは実機
+- ライブAI応答用の互換バックエンド
 
 ## Build
 
@@ -47,48 +41,38 @@ xcodebuild build \
   -derivedDataPath /tmp/ai-companion-ios-deriveddata
 ```
 
-## Backend Connection
+## バックエンド接続
 
-Debug builds default to:
+Debugビルドの既定値は次の通りです。
 
 ```text
 ws://127.0.0.1:8000/ws
 ```
 
-For a remote backend, set the app's WebSocket URL to:
+リモートバックエンドを使う場合は、アプリのWebSocket URLを次の形式に設定します。
 
 ```text
 wss://<your-backend-host>/ws
 ```
 
-If the backend requires an AIAvatar API key, enter the same key in the app's
-settings. The key is stored in the iOS Keychain.
+バックエンドがAIAvatar APIキーを要求する場合は、同じキーをアプリの設定画面に入力します。入力したキーはiOS Keychainに保存されます。
 
-## Privacy Notes
+## プライバシー上の注意
 
-Depending on enabled features, the app can handle microphone audio, camera
-frames, selected photos, location samples, calendar summaries, and journal
-content.
+有効にした機能に応じて、このアプリはマイク音声、カメラフレーム、選択写真、位置サンプル、予定表要約、日記内容を扱います。
 
-- Audio and text are sent to the configured WebSocket backend.
-- Vision mode sends recent camera frames as base64 JPEG conversation context to
-  the configured backend while the mode is enabled.
-- Journal entries, selected photo copies, and location samples are stored
-  locally in the app's Application Support directory. They remain there until
-  removed by the app/user or the app data is deleted.
-- Journal mode can send conversation excerpts, slot progress, selected-photo
-  counts, location sample counts, and optional calendar summaries to the
-  configured backend as journal prompt context. The full journal entry is still
-  generated and stored locally by the app.
-- Selected photos are copied into app storage from the original image data and
-  may retain metadata embedded in that image data.
-- API keys entered in the app are stored in the iOS Keychain.
+- 音声とテキストは、設定したWebSocketバックエンドへ送信されます。
+- vision modeでは、有効化中に直近のカメラフレームをbase64 JPEGの会話文脈として、設定したバックエンドへ送信します。
+- 日記本文、選択写真のコピー、位置サンプルは、アプリのApplication Supportディレクトリにローカル保存されます。アプリまたはユーザーが削除するか、アプリデータが削除されるまで保持されます。
+- journal modeでは、会話抜粋、項目の進行状況、選択写真数、位置サンプル数、任意の予定表要約を、journal prompt contextとして設定済みバックエンドへ送信することがあります。完成した日記本文はアプリ側で生成し、ローカルに保存します。
+- 選択写真は元画像データからアプリ内ストレージへコピーされます。元画像に埋め込まれたメタデータが残る可能性があります。
+- アプリに入力したAPIキーはiOS Keychainに保存されます。
 
-Do not use the app with a backend you do not trust.
+信頼できないバックエンドには接続しないでください。
 
-## Third-Party Assets
+## Third-party assets
 
-The MotionPNGTuber player and bundled avatar assets are documented in:
+MotionPNGTuberプレイヤーとバンドル済みアバターアセットについては、次のファイルに記載しています。
 
 ```text
 chat app/MotionPNGTuberPlayer/THIRD_PARTY_NOTICES.md
@@ -96,6 +80,4 @@ chat app/MotionPNGTuberPlayer/THIRD_PARTY_NOTICES.md
 
 ## License
 
-No project-wide open source license is currently granted. Public GitHub access
-allows viewing the repository, but reuse, redistribution, or derivative works
-are not permitted unless a license is added later.
+このプロジェクト全体に対するオープンソースライセンスは、現時点では付与していません。GitHubで公開されているため閲覧はできますが、後日ライセンスを追加しない限り、再利用、再配布、派生物の作成は許可していません。
