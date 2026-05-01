@@ -1,0 +1,12 @@
+.DS_Store
+
+# Xcode / local workspace state
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+
+# Local packaged outputs
+*.ipa
+*.dSYM/
+*.xcarchive/

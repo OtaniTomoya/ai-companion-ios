@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>MotionPNGTuber Avatar</title>
+  <link rel="preload" as="image" href="./preview.png">
+  <link rel="preload" as="image" href="./closed.png">
+  <link rel="preload" as="video" href="./loop_mouthless_h264.mp4" type="video/mp4">
+  <link rel="stylesheet" href="./embed.css">
+</head>
+<body data-status="loading">
+  <main id="stage" aria-label="MotionPNGTuber avatar">
+    <video
+      id="base-video"
+      autoplay
+      loop
+      muted
+      playsinline
+      preload="metadata"
+      poster="./preview.png"
+    ></video>
+    <canvas id="mouth-canvas"></canvas>
+  </main>
+
+  <script src="./mouth_track_data.js"></script>
+  <script src="./lipsync.js"></script>
+  <script>
+    const stage = document.getElementById('stage');
+    const video = document.getElementById('base-video');
+    const mouthCanvas = document.getElementById('mouth-canvas');
+
+    let playerReady = false;
+    let lastVolumeData = { rms: 0, high: 0.0001, low: 0.0001, sensitivity: 55 };
+    const engine = new LipsyncEngine({
+      elements: {
+        video,
+        mouthCanvas,
+        stage
+      },
+      callbacks: {
+        onFileStatus: (status, message) => {
+          if (status === 'success') {
+            playerReady = true;
+            document.body.dataset.status = 'ready';
+            stage.classList.add('is-ready');
+            notifyNativeStatus('ready', message);
+            replayLastVolume();
+          } else if (status === 'error') {
+            document.body.dataset.status = 'error';
+            document.body.dataset.error = message;
+            notifyNativeStatus('error', message);
+          }
+        },
+        onError: (message) => {
+          document.body.dataset.status = 'error';
+          document.body.dataset.error = message;
+          notifyNativeStatus('error', message);
+        }
+      },
+      assets: {
+        video: './loop_mouthless_h264.mp4',
+        trackData: window.motionPngTuberTrackData,
+        mouth_closed: './closed.png',
+        mouth_open: './open.png',
+        mouth_half: './half.png',
+        mouth_e: './e.png',
+        mouth_u: './u.png'
+      },
+      options: {
+        debug: false,
+        hqAudioEnabled: true,
+        sensitivity: 55
+      }
+    });
+
+    window.addEventListener('error', (event) => {
+      const message = event.message || 'アバターの読み込みに失敗しました。';
+      document.body.dataset.status = 'error';
+      document.body.dataset.error = message;
+      notifyNativeStatus('error', message);
+    });
+
+    function notifyNativeStatus(type, message = '') {
+      window.webkit?.messageHandlers?.motionPngTuberReady?.postMessage({ type, message });
+    }
+
+    function replayLastVolume() {
+      window.motionPngTuberSetVolume(lastVolumeData);
+    }
+
+    window.motionPngTuberSetVolume = function(data) {
+      if (!data) return;
+
+      const rms = clampNumber(data.rms, 0, 1);
+      const sensitivity = Math.round(clampNumber(data.sensitivity, 0, 100));
+      const high = Math.max(0.0001, clampNumber(data.high, 0, 1));
+      const low = Math.max(0.0001, clampNumber(data.low, 0, 1));
+
+      lastVolumeData = { rms, high, low, sensitivity };
+      engine.setSensitivity(sensitivity);
+
+      if (!playerReady) return;
+
+      engine.processAudioData({ rms, high, low });
+      if (!engine.isRunning) {
+        engine.start();
+      }
+    };
+
+    function clampNumber(value, min, max) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return min;
+      return Math.min(max, Math.max(min, number));
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && playerReady && !engine.isRunning) {
+        engine.start();
+      }
+    });
+  </script>
+</body>
+</html>
